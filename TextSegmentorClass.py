@@ -177,7 +177,10 @@ class TextSegmentor(object):
                     else:
 
                         k = filter(None, self.punctsplit.split(paragraph[start:i]))
-                        lastword = len(k[len(k)-1])
+                        try:
+                            lastword = len(k[len(k)-1])
+                        except IndexError:
+                            lastword = 2
 
                         # обработка случаев, когда между предложениями пропущен пробел. (.. in it.The...)
                         if leftcontext_2.match(paragraph[i-lastword:i]) and rightcontext_2.match(paragraph[i+1:]):
