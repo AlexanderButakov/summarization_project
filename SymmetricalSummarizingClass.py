@@ -429,7 +429,7 @@ class SymmetricalSummarizationWeightCount(object):
         
         return w_sent
 
-    # def countFinalSymmetryWeight(self,tfidf_terms,sents_with_termsfreqs, total_stems_in_text, total_sents_in_text, stopwords, VERBTRANSFORMS, NOUNTRANSFORMS, lst_of_plain_sents, stemmed_pnn, lexicon_de):
+    
     def countFinalSymmetryWeight(self,tfidf_terms,sents_with_termsfreqs, total_stems_in_text, total_sents_in_text, stemmed_pnn):
 
         """
