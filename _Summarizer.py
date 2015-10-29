@@ -6,8 +6,6 @@ from TextSegmentorClass import TextSegmentor
 from SentenceSplitterClass import SentenceSplitter
 from SymmetricalSummarizingClass import *
 import codecs, itertools, subprocess, json
-import cProfile
-# import chardet, guess_language
 
 
 
@@ -27,12 +25,14 @@ class SUMMARIZER(object):
             self.stopwords = self.external_lst.loadStopWordsEN()
             self.VERBTRANSFORMS = self.external_lst.loadVerbForms()
             self.NOUNTRANSFORMS = self.external_lst.loadNounforms()
+            self.terms_dict = self.external_lst.loadCorpusEN()
             self.lexicon_de = ''
             self.ger_nn = ''
             self.ger_ne = ''
         
         if self.language == 'ru':
             self.stopwords = self.external_lst.loadStopWordsRU()
+            self.terms_dict = self.external_lst.loadCorpusRU()
             self.VERBTRANSFORMS = ''
             self.NOUNTRANSFORMS = ''
             self.lexicon_de = ''
@@ -44,21 +44,15 @@ class SUMMARIZER(object):
             self.stopwords = self.external_lst.loadStopWordsDE()
             self.ger_nn = self.external_lst.loadGermanNN()
             self.ger_ne = self.external_lst.loadGermanNE()
+            self.terms_dict = self.external_lst.loadCorpusDE()
             self.VERBTRANSFORMS = ''
             self.NOUNTRANSFORMS = ''
 
         # стеммируются предложения
         self.stem_sents = SentenceSplitter(self.stopwords, self.VERBTRANSFORMS, self.NOUNTRANSFORMS, self.lexicon_de, self.language)
 
-        if self.language == 'en':
-            self.terms_dict = self.external_lst.loadCorpusEN()
-        if self.language == 'ru':
-            self.terms_dict = self.external_lst.loadCorpusRU()
-        if self.language == 'de':
-            self.terms_dict = self.external_lst.loadCorpusDE()
 
     def summarize(self, text):
-
 
         # статья для обработки
         OPENTEXT = text
@@ -70,14 +64,12 @@ class SUMMARIZER(object):
         # склеиваем все списки в один простой список ALLSENTENCES для статистики по предложениям
         ALLSENTENCES = list(itertools.chain.from_iterable(LIST_OF_SENTENCES))
 
-
         # для методики симметричного реф-я нужно не менее 3-х предложений
         if len(ALLSENTENCES) >= 3:
             
             # стеммируются предложения
             # список предложений из основ слов, предложения сгруппированны по абзацам
             STEMMED_SENTENCES = self.stem_sents.tokenizeListParagraphs(LIST_OF_SENTENCES)
-
 
             # стеммируется заголовок
             if len(TTL) > 0:
@@ -121,7 +113,6 @@ class SUMMARIZER(object):
                 symmetry = SymmetricalSummarizationWeightCount()
                 # словари каждого предложения с частотностью по словам
                 S_with_termfreqs = symmetry.countTermsInsideSents(NO_PARAGRAPHS)
-                # SYMMETRICAL_WEIGHTS = symmetry.countFinalSymmetryWeight(FINAL_SORTED_TFIDF, S_with_termfreqs, TOTAL_STEMS_IN_TEXT, TOTAL_SENTS_IN_TEXT, self.stopwords, self.VERBTRANSFORMS, self.NOUNTRANSFORMS, ALLSENTENCES, STEMMED_PNN, self.lexicon_de)
                 SYMMETRICAL_WEIGHTS = symmetry.countFinalSymmetryWeight(FINAL_SORTED_TFIDF, S_with_termfreqs, TOTAL_STEMS_IN_TEXT, TOTAL_SENTS_IN_TEXT, STEMMED_PNN)
                 ORIGINAL_SENTENCES = symmetry.convertSymmetryToOrdinary(SYMMETRICAL_WEIGHTS, ALLSENTENCES)
 
@@ -183,18 +174,15 @@ class SUMMARIZER(object):
             outfile.write("</div>")
             outfile.write("</body></html>")
         
-        # subprocess.call([r"C:\\Users\AlexanderB\AppData\Local\Google\Chrome\Application\chrome.exe", "output.html"])
+        # subprocess.call([r"..\AppData\Local\Google\Chrome\Application\chrome.exe", "output.html"])
 
 def main():
 
-    language = 'de'
-
-    # загружаем статью для обработки
-    # text_read = codecs.open(r"D:\py\summarization_project_RUS\tests\blob4.txt",'r','utf-16')
-    # text_read = codecs.open(r"D:\py\summarization_project\articles_to_sum\Guardian_23_05_14.txt",'r','utf-16')
-    text_read = codecs.open(r"D:\py\TermSpaceBuilder\materials_GERMAN\GERMAN_CORPUS\aktuell\mappus-sieht-keine-notwendigkeit-fuer-verschaerfung-des-waffenrechts.txt",'r','utf-16')
+    language = ''
+    text_read = codecs.open(r"",'r','utf-16')
+    
     print "Loading text to summarize..."
-    print
+    
     OPENTEXT = text_read.read().strip()
     text_read.close()
 
@@ -204,6 +192,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # cProfile.run('main()')
 
 
