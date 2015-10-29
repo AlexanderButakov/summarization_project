@@ -27,8 +27,6 @@ class NormalizerDE(object):
         for umlaut, ersatz in self.umlauts.iteritems():
             if umlaut in word:
                 word = word.replace(umlaut, ersatz)
-            else:
-                word = word
                 
         return word
 
@@ -50,24 +48,20 @@ class NormalizerDE(object):
             
             return no_endings2
         else:
-
             return no_endings
 
 
     def lemmatize(self, word, lexicon):
 
-        got_lemma = False
         for l in range(len(word)):
             word_no_prefix = word[l:]
             prefix = word[:l]
             if word_no_prefix[:3] in self.alphabet:
                 for lemma, wordforms in lexicon[word_no_prefix[:3]].iteritems():
                     if word_no_prefix in tuple(wordforms):
-                        got_lemma = True
                         return prefix+lemma
 
-        if not got_lemma:
-            return word
+        return word
 
 
 
