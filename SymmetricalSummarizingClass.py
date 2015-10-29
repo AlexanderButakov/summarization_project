@@ -13,6 +13,14 @@ class FindProperNouns(object):
         self.language = language
 
     def lookForProper(self, lst_of_sents, stopwords, VERBTRANSFORMS, NOUNTRANSFORMS, lexicon_de, ger_nn, ger_ne):
+        '''
+        Наивный метод поиска имен собственных. 
+        Они нужны при добавлении дополнительных весов предложениям и словам.
+        Для англ. и русск. выбираются все слова с большой буквы, если они
+        стоят не в начале предложения.
+        В немецком все сущ. пишутся с большой буквы, поэтому ищем слово с большой буквы
+        в списке имен собственных и геоназваний.
+        '''
 
         proper_nouns = set([])
         proper_nouns_de = []
@@ -28,7 +36,6 @@ class FindProperNouns(object):
             stemmed_pnn = set([sp_object.stemmer.stem(sp_object.lemmatizer_ru.parse(pnn.lower())[0].normal_form) for pnn in proper_nouns])
         elif self.language == 'de':
             
-            # stemmed_pnn = set()
             for candidate in proper_nouns:
                 got_candidat = False
                 for l in range(len(candidate)):
@@ -49,8 +56,14 @@ class FindProperNouns(object):
         return proper_nouns, stemmed_pnn
 
 class CalculateExtraWeights(object):
+    '''
+    Методы класса возвращают списки, которые нужны для подсчета дополнительных весов словам
+    '''
 
     def collectFirstLastSents(self, lst_of_paragraphs):
+        '''
+        Формируется список первых и последних предложений абзацев
+        '''
 
         first_last_sents = []
 
@@ -65,6 +78,9 @@ class CalculateExtraWeights(object):
         return first_last_sents
 
     def collectQuestionSents(self, lst_of_sents):
+        '''
+        Формируется список вопросительных предложений
+        '''
 
         lst_of_quest_exclum_sents = []
 
@@ -88,7 +104,7 @@ class CountTermWeights(object):
     def simpleTermFreqCount(self, big_lst):
 
         """
-        Функция получает на вход список стем.
+        Метод получает на вход список стем.
         В словаре stemfreqs считаются частотности стем.
         Подсчитывается общее количество стем в словаре (total_stems_in_text).
         Вычисляется среднее арифметическое (mean_freq).
@@ -229,7 +245,7 @@ class CountTermWeights(object):
         
         """
         Функция сопоставляет стеммы ключевых слов непосредственно со словами,
-        что вывести их в резултат.
+        чтобы вывести их в резултат.
         На вход принимает список пар (стемма, слово), список весов, список 
         относительных частот (для web) и список имен собственных. 
         Список имен собственных нужен для правильного вывода слов 
@@ -285,7 +301,7 @@ class SymmetricalSummarizationWeightCount(object):
     def countTermsInsideSents(self, sents_lst):
 
         """
-        Функция получает список предложений вида [[sentence1],[sentence2]].
+        Метод получает список предложений вида [[sentence1],[sentence2]].
         Для каждого предложения подсчитывается частота входящих в него стем.
         Возвращается список, содержащий в себе словари стем с их частотами в каждом
         предложении [{word1:2, word2:5, wordn:c},{word1:5, word2:6, wordn:c}]
@@ -305,7 +321,7 @@ class SymmetricalSummarizationWeightCount(object):
     def rightLinksCount(self, tfidf_terms, sents_with_termsfreqs):
 
         """
-        Функция производит поиск связей между предложениями вправо.
+        Метод производит поиск связей между предложениями вправо.
         Принимает на вход список tf-idf, и список словарей с частотами
         для каждого предложения. Берется предложение (словарь), если в нем есть
         термин из tf-idf, то ищется вхождение этого термина в предложениях справа.
@@ -360,7 +376,7 @@ class SymmetricalSummarizationWeightCount(object):
     def leftLinksCount(self, tfidf_terms,sents_with_termsfreqs):
 
         """
-        Функция производит поиск связей между предложениями влево.
+        Метод производит поиск связей между предложениями влево.
         Тот же алгоритм, что и при поиске вправо, только с нулевым
         весом скидывается первое предложение. Чтобы реализовать 
         поиск влево, список предложений переворачивается.
@@ -394,7 +410,7 @@ class SymmetricalSummarizationWeightCount(object):
     def countSymmetry(self,tfidf_terms,sents_with_termsfreqs):
 
         """
-        Функция складывает два списка, полученных при поиске
+        Метод складывает два списка, полученных при поиске
         вправо и влево. Принимает на вход так же список tf-idf,
         и список предложений-словарей. Внутри явно вызываются 
         функции установления правых и левых связенй, порядок 
@@ -417,7 +433,7 @@ class SymmetricalSummarizationWeightCount(object):
     def countFinalSymmetryWeight(self,tfidf_terms,sents_with_termsfreqs, total_stems_in_text, total_sents_in_text, stemmed_pnn):
 
         """
-        Функция добавляет к весам предложения дополнительный 
+        Метод добавляет к весам предложения дополнительный 
         коэффициент ASL (average sentence length), чтобы 
         длинные предложения не набрали большой вес.
         Принимает на вход список tf-idf, список предложений-словарей,
@@ -448,26 +464,17 @@ class SymmetricalSummarizationWeightCount(object):
                 if pnn in w_sent[s][0]:
                     p += 1
             n_p.append(p)
-        
-        # max_np = sorted(n_p, reverse=True)[0]
-        # mean_np = sum(n_p) / float(len(n_p))
                 
         for sd in range(len(w_sent)):
             dig = []
             dig = len(f_digits.findall(' '.join([sk for sk in w_sent[sd][0]])))
             digits.append(dig)
-        
-        # max_dig = sorted(digits, reverse=True)[0]
-        # mean_dig = sum(digits) / float(len(digits))
                         
         for s0 in range(len(w_sent)):
             if len(w_sent[s0][0]) > 0:
                 if n_p[s0] != 0:
-                    # word_count0 = len(w_sent[s0][0])
-                    # score0 = w_sent[s0][1] + (n_p[s0]/word_count0)
-                    score0 = w_sent[s0][1] * (1+math.log(n_p[s0], 2))              #(1+math.log(n_p[s0], 10)/1+math.log(mean_np, 10))   #(1+math.log(n_p[s0], 10)) #(0.5 + (0.5 * n_p[s0])/max_np)
+                    score0 = w_sent[s0][1] * (1+math.log(n_p[s0], 2))
                     w_sent2.append((w_sent[s0][0], score0))
-                    # print (1+math.log(n_p[s0], 2))
                     
                 else:
                     w_sent2.append((w_sent[s0][0], w_sent[s0][1]))
@@ -477,10 +484,8 @@ class SymmetricalSummarizationWeightCount(object):
         for s_0 in range(len(w_sent2)):
             if len(w_sent2[s_0][0]) > 0:
                 if digits[s_0] != 0:
-                    # word_count_0 = len(w_sent2[s_0][0])
-                    score_0 = w_sent2[s_0][1] * (1+math.log(digits[s_0], 2))           #(1+math.log(digits[s_0], 10)/1+math.log(mean_dig, 10))  #(1+math.log(digits[s_0], 10))  #(0.5 + (0.5 * digits[s_0])/max_dig)
+                    score_0 = w_sent2[s_0][1] * (1+math.log(digits[s_0], 2))
                     w_sent3.append((w_sent2[s_0][0], score_0))
-                    # print (1+math.log(digits[s_0], 2))
                     
                 else:
                     w_sent3.append((w_sent2[s_0][0], w_sent2[s_0][1]))
@@ -497,16 +502,13 @@ class SymmetricalSummarizationWeightCount(object):
                     w_sent4.append((w_sent3[s1][0], score*1))
             else:
                 w_sent4.append((w_sent3[s1][0], w_sent3[s1][1]))
-
-        # for c, v in w_sent3:
-        #     print c, v
                 
         return w_sent4
 
     def convertSymmetryToOrdinary(self, symm_weights, ordinary_sents):
 
         """
-        Функция получает на вход список кортежей предложений-словарей с весами
+        Метод получает на вход список кортежей предложений-словарей с весами
         и список оригинальных предложений, т.е. неподвергшихся токенизации
         и стеммингу. Из последнего списка выбираются предложения, которые
         соответствуют словарям с весами. Стоит ограничение на длину показываемого
@@ -520,8 +522,6 @@ class SymmetricalSummarizationWeightCount(object):
 
         prefinal_sentences = []
                         
-        # mean_weight = round(sum([symm_weights[s][1] for s in range(len(symm_weights))]) / float(len(symm_weights)))
-        # print mean_weight
         ordinary_sents_with_freqs = [(ordinary_sents[s], symm_weights[s][1], s) for s in range(len(symm_weights))] #if symm_weights[s][1] > mean_weight]
 
         s_ordinary_sents_with_freqs = sorted(ordinary_sents_with_freqs, key = lambda w:w[1], reverse = True)
@@ -541,7 +541,7 @@ class SymmetricalSummarizationWeightCount(object):
     def selectFinalSents(self, converted_sents, percentage=20):
 
         """
-        Функция выбирает n первых предложений из списка.
+        Метод выбирает n первых предложений из списка.
         n определяется указанным процентом. Список сортируется
         по позиции предложения в оригинальном тексте, таким образом
         возвращается оригинальная последовательность, чтобы хоть
@@ -552,24 +552,19 @@ class SymmetricalSummarizationWeightCount(object):
         salient_sentences = []
 
         compression_rate = int(round(((len(converted_sents) * percentage) / 100) + 0.5))
-        # print "The rate of original text compression: ", compression_rate, "sentences"
-        # print
 
         salient_sentences = converted_sents[:compression_rate]
         
         sorted_salient_sentences = sorted(salient_sentences, key = lambda w:w[2])
-
-        # for sent3 in range(len(sorted_salient_sentences)):
-        #     print repr(sorted_salient_sentences[sent3][0]), sorted_salient_sentences[sent3][1], sorted_salient_sentences[sent3][2]
-
-        # for sent3 in range(len(converted_sents)):
-        #     print repr(converted_sents[sent3][0]), converted_sents[sent3][1], converted_sents[sent3][2]
         
         return sorted_salient_sentences, compression_rate
 
 class KeywordsInSummary(object):
 
     def showKWIS(self, summary, keywords):
+        '''
+        Грубый метод для 'подсвечивания' ключевых слов в html-выдаче.
+        '''
 
         only_keywords = list(itertools.chain.from_iterable([kw[0] for kw in keywords]))
 
