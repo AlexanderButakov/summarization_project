@@ -355,6 +355,11 @@ class TextSegmentor(object):
 
 
     def glueSpecialDE(self, set_of_sentences):
+        '''
+        Функция склеивания для немецких предложений.
+        Специальная обработка случаев с точкой после
+        цифр: "25. Maerz" - одно предлоежние
+        '''
 
         digits = re.compile(r'[0-9]+')
 
