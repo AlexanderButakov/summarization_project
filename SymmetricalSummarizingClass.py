@@ -119,7 +119,7 @@ class CountTermWeights(object):
         for stem in big_lst:
             stemfreqs[stem] += 1
 
-        total_stems_in_text = float(len(stemfreqs))
+        total_stems_in_text = float(len(big_lst))
 
         mean_freq = sum(stemfreqs.values()) / total_stems_in_text
 
