@@ -5,6 +5,7 @@ from ResListsLoaderClass import LoadExternalLists
 from TextSegmentorClass import TextSegmentor
 from SentenceSplitterClass import SentenceSplitter
 from SymmetricalSummarizingClass import *
+from HTMLParser import HTMLParser
 import codecs, itertools, subprocess, json
 
 
@@ -55,7 +56,7 @@ class SUMMARIZER(object):
     def summarize(self, text):
 
         # статья для обработки
-        OPENTEXT = text
+        OPENTEXT = HTMLParser().unescape(text)
 
         # разбиваем в LIST_OF_SENTENCES входной текст
         textsegmentor = TextSegmentor(self.titled_stopwords, self.ABBREVIATIONS, self.language)
